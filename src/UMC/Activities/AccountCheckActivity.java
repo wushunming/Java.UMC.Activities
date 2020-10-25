@@ -19,10 +19,11 @@ class AccountCheckActivity extends WebActivity {
                 info.put("IsCashier", request.isCashier());
                 info.put("TimeSpan", System.currentTimeMillis() / 1000);
 
+                info.put("Device", UMC.Data.Utility.uuid(UMC.Security.AccessToken.token()));
+
                 String ContentType = AccessToken.current().ContentType;
                 if (Utility.isEmpty(ContentType) == false) {
                     if (ContentType.contains("WeiXin")) {
-
                         info.put("IsWeiXin", true);
                     } else if (ContentType.contains("Client")) {
 

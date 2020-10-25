@@ -10,7 +10,7 @@ import java.util.UUID;
 public class SettingsSelectUserActivity extends WebActivity {
 
     public void processActivity(WebRequest request, WebResponse response) {
-        String key = this.asyncDialog("Key", g -> this.dialogValue("Promotion"));
+        String key = this.asyncDialog("Key",  "SelectUser");
 
         UUID UserId = Utility.uuid(this.asyncDialog("UserId", g ->
         {

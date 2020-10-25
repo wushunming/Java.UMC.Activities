@@ -9,6 +9,7 @@ import UMC.Data.Utility;
 import UMC.Security.Identity;
 import UMC.Security.Membership;
 import UMC.Web.*;
+import UMC.Web.UI.UIImageTextValue;
 
 import java.util.Date;
 import java.util.UUID;
@@ -61,8 +62,12 @@ class AccountSelfActivity extends WebActivity {
 
 
             UISection ui = UISection.create(title);
-            ui.putImageTextValue(logoUrl, "头像", 100, new UIClick("id", user.Id.toString(), "seq", "1")
-                    .send("Design", "Image"));
+            UIImageTextValue imageTextValue = new UIImageTextValue(logoUrl, "头像", "");
+            imageTextValue.style().name("image-width", "100");
+            imageTextValue.click(new UIClick("id", user.Id.toString(), "seq", "1")
+                    .send("Design", "Picture"));
+
+            ui.put(imageTextValue);
             ui.putCell("昵称", user.Alias, new UIClick("Type", Type, g, "Alias").send(request.model(), request.cmd()));
 
 

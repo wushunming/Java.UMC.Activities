@@ -5,6 +5,7 @@ import UMC.Data.Database;
 import UMC.Data.Entities.Account;
 import UMC.Data.Sql.IObjectEntity;
 import UMC.Data.Utility;
+import UMC.Net.Message;
 import UMC.Security.AccessToken;
 import UMC.Security.Identity;
 import UMC.Security.Membership;
@@ -48,6 +49,7 @@ public class AccountRegisterActivity extends WebActivity {
          * 请实现发短信,并做好发送次数限制
          */
 
+        Message.instance().send("Register", hask, mobile);
     }
 
     @Override

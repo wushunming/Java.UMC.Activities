@@ -1,14 +1,14 @@
 package UMC.Activities;
 
+import UMC.Data.*;
 import UMC.Data.Entities.Account;
 import UMC.Data.Entities.User;
-import UMC.Data.JSON;
 import UMC.Data.Sql.IObjectEntity;
-import UMC.Data.Utility;
-import UMC.Data.Database;
+import UMC.Net.Message;
 import UMC.Security.Membership;
 import UMC.Web.*;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 
@@ -52,7 +52,9 @@ public class AccountForgetActivity extends WebActivity {
                     hask.put("Code", code);
 
                     accountIObjectEntity.update(new Account().ConfigData(JSON.serialize(map)));
-                    sendForget(acc.Name, hask);
+                    // sendForget(acc.Name, hask);
+
+                    Message.instance().send("Forget", hask, acc.Name);
 
                 }
 
@@ -77,20 +79,19 @@ public class AccountForgetActivity extends WebActivity {
         return false;
     }
 
-    void sendForget(String mobile, Map map) {
-        Utility.format("{Code}", map);
-
-        /***
-         * 请自行实现发送忘记密码短信
-         */
-    }
-
     void sendEmail(String email, Map map) {
-        Utility.format("{Code}", map);
+        ProviderConfiguration providerConfiguration = ProviderConfiguration.configuration("account");
+        if (providerConfiguration != null) {
+            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            String dateString = formatter.format(new Date());
+            map.put("DataTime", dateString);
+            Provider Forget = providerConfiguration.get("Forget");
+            String Subject = Utility.format(Forget.get("Subject"), map);
+            String Body = Utility.format(Forget.get("Body"), map);
+            Message.instance().sendEmail(Subject, Body, email);
 
-        /***
-         * 请自行实现发送邮件
-         */
+        }
+
     }
 
     @Override

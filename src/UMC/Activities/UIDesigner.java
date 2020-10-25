@@ -4,10 +4,8 @@ import UMC.Activities.Entities.Design_Item;
 import UMC.Data.Database;
 import UMC.Data.JSON;
 import UMC.Web.*;
-import UMC.Web.UI.UIDesc;
+import UMC.Web.UI.*;
 import UMC.Data.Utility;
-import UMC.Web.UI.UIImageTitleDescBottom;
-import UMC.Web.UI.UITitleMore;
 
 import java.util.Date;
 import java.util.LinkedList;
@@ -41,32 +39,31 @@ public class UIDesigner {
             StoreDesignTypeDiscount = 2048,
             StoreDesignType = 2048 * 2;
 
-    UISlider[] Sliders(UUID parentId, List<Design_Item> baners) {
-        List<UISlider> list = new LinkedList<>();
+    void Sliders(UISlider slider, UUID parentId, List<Design_Item> baners) {
+        //List<UISlider> list = new LinkedList<>();
         UMC.Data.WebResource webr = UMC.Data.WebResource.Instance();
         for (Design_Item b : baners) {
-            UISlider slider = new UISlider();
 
-            slider.src(webr.ImageResolve(b.Id, "1", 0) + "!slider?" + this.TimeSpan(b.ModifiedDate));
+            String src = (webr.ImageResolve(b.Id, "1", 0) + "!slider?" + this.TimeSpan(b.ModifiedDate));
 
             if (_editer) {
-                slider.click(new UIClick(new UMC.Web.WebMeta().put("Id", b.Id)).send("Design", "Item"));
+                slider.add(new UIClick(new UMC.Web.WebMeta().put("Id", b.Id)).send("Design", "Item"), src);
             } else {
                 if (UMC.Data.Utility.isEmpty(b.Click) == false) {
-                    slider.click(
-                            UMC.Data.JSON.deserialize(b.Click, UIClick.class));
+                    slider.add(UMC.Data.JSON.deserialize(b.Click, UIClick.class), src);
 
+                } else {
+                    slider.add(src);
                 }
 
             }
-            list.add(slider);
         }
-        if (list.size() == 0 && _editer) {
-            list.add(new UISlider()
-                    .click(new UIClick(parentId.toString()).send("Design", "Item")));
+        if (slider.size() == 0 && _editer) {
+
+            slider.add(new UIClick(parentId.toString()).send("Design", "Item"));
 
         }
-        return list.toArray(new UISlider[0]);
+
 
     }
 
@@ -75,7 +72,8 @@ public class UIDesigner {
             WebMeta config = Utility.isNull(UMC.Data.JSON.deserialize(parent.Data, WebMeta.class), new UMC.Web.WebMeta());
 
 
-            UICell slider2 = UISlider.create(Sliders(parent.Id, baners));
+            UISlider slider2 = new UISlider();//.create(
+            Sliders(slider2, parent.Id, baners);
             int[] paddings = UIStyle.padding(config);
             if (paddings.length > 0) {
                 slider2.style().padding(paddings);
@@ -88,14 +86,16 @@ public class UIDesigner {
                     .send("Design", "Item"));
             desc.desc("{desc}\r\n配置横幅栏");
             desc.style().alignCenter().name("desc", new UIStyle().font("wdk").size(38)
-                    );
+            );
             U.put(desc);
 
         }
     }
 
     void Icons(UUID parentId, List<Design_Item> baners, UISection U) {
-        List<UIEventText> list = new LinkedList<>();
+//        List<UIEventText> list = new LinkedList<>();
+        UIIcon uiIcon = new UIIcon();
+        uiIcon.style().name("icon").font("wdk").size(24);
         UMC.Data.WebResource webr = UMC.Data.WebResource.Instance();
         for (Design_Item b : baners) {
             UIEventText slider = new UIEventText(b.ItemName);
@@ -110,11 +110,11 @@ public class UIDesigner {
             }
             slider.click(this.Click(b));
 
-            list.add(slider);
+            uiIcon.add(slider);
 
         }
-        if (list.size() > 0) {
-            U.putIcon(new UIStyle().name("icon", new UIStyle().font("wdk").size(24)), list.toArray(new UIEventText[0]));
+        if (uiIcon.size() > 0) {
+            U.put(uiIcon);
         } else if (_editer) {
             UIDesc desc = new UIDesc("\ue907");
             desc.desc("{desc}\r\n配置图标栏");
@@ -130,36 +130,40 @@ public class UIDesigner {
 
     void Items(Design_Item parent, List<Design_Item> baners, UISection U) {
         UUID parentId = parent.Id;
-        List<UIItem> list = new LinkedList<>();
+        // List<UIItem> list = new LinkedList<>();
         UMC.Data.WebResource webr = UMC.Data.WebResource.Instance();
-        for (int i = 0; i < baners.size() && i < 4; i++) {
-            Design_Item b = baners.get(i);
-            WebMeta icon = Utility.isNull(UMC.Data.JSON.deserialize(b.Data, WebMeta.class), new UMC.Web.WebMeta());
-            UIItem slider = UIItem.Create(icon);
-            slider.Click(this.Click(b));
-            String t = "100";
-            switch (baners.size()) {
-                case 1:
-                    t = "4-1";
-                    break;
-                case 2:
-                    t = "2-1";
-                    break;
-                case 3:
-                    if (i == 0) {
+        if (baners.size() > 0) {
+            UIItems uiItems = new UIItems();
+            for (int i = 0; i < baners.size() && i < 4; i++) {
+                Design_Item b = baners.get(i);
+                WebMeta icon = Utility.isNull(UMC.Data.JSON.deserialize(b.Data, WebMeta.class), new UMC.Web.WebMeta());
+
+                icon.put("click", this.Click(b));
+
+                String t = "100";
+                switch (baners.size()) {
+                    case 1:
+                        t = "4-1";
+                        break;
+                    case 2:
                         t = "2-1";
-                    }
-                    break;
+                        break;
+                    case 3:
+                        if (i == 0) {
+                            t = "2-1";
+                        }
+                        break;
+                }
+
+                icon.put("src", String.format("%s!%s?%d", webr.ImageResolve(b.Id, "1", 0), t, this.TimeSpan(b.ModifiedDate)));
+
+                uiItems.add(icon);
+
             }
+            U.put(uiItems);
 
-            slider.Src(String.format("%s!%s?%d", webr.ImageResolve(b.Id, "1", 0), t, this.TimeSpan(b.ModifiedDate)));
-            list.add(slider);
-
-        }
-        if (list.size() > 0) {
-            U.putItems(list.toArray(new UIItem[0]));
         } else if (_editer) {
-            ;
+
             UIDesc desc = new UIDesc("\ue907");
             desc.desc("{desc}\r\n配置分块栏");
 
@@ -278,10 +282,8 @@ public class UIDesigner {
         }
         data.put("show", m);
         String src = (String.format("%s!%s?%d", webr.ImageResolve(item.Id, "1", 0), img, this.TimeSpan(item.ModifiedDate)));
-//        list.add(slider);
 
-        //
-        UIImageTitleDescBottom btm = UIImageTitleDescBottom.Create(data, src);
+        UIImageTitleDescBottom btm = new UIImageTitleDescBottom(data, src);
         btm.click(this.Click(item));
         String left = data.get("left");
         if (Utility.isEmpty(left) == false) {

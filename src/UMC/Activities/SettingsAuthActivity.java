@@ -16,13 +16,13 @@ import java.util.*;
 
 class SettingsAuthActivity extends WebActivity {
 
-    public void Wildcard(WebRequest request, WebResponse response, String name) {
+    void Wildcard(WebRequest request, WebResponse response, String name) {
         IObjectEntity<Wildcard> wddEntity = UMC.Data.Database.instance().objectEntity(UMC.Data.Entities.Wildcard.class);
         Wildcard wdk = wddEntity.where().and().equal(new Wildcard().WildcardKey(name)).entities().single();//.Single();
 
         List<Map> auths = new LinkedList<>();
         if (wdk != null) {
-            //  var data = new Data.Entity<Data.Entities.Wildcard, List<Security.Authorize>>(wdk, wdk.Authorizes);
+
             Map[] s = JSON.deserialize(wdk.Authorizes, Map[].class);
             for (Map map : s)
                 auths.add(map);
@@ -51,7 +51,7 @@ class SettingsAuthActivity extends WebActivity {
 
 
             for (Map u : users) {
-                String value = (String) u.get("Value");// u.Value;
+                String value = (String) u.get("Value");
                 String text = value;
                 Identity u1 = Utility.find(dusers, d -> d.name().equalsIgnoreCase(value));//  dusers.Find(d = > d.Name == u.Value);
                 if (u1 != null) {
@@ -113,15 +113,14 @@ class SettingsAuthActivity extends WebActivity {
                 if (a != null) {
                     auths.remove(a);
                     wddEntity.update(new Wildcard().Authorizes(UMC.Data.JSON.serialize(auths)));
-                    if (Utility.exists(auths,k  -> ((String)k.get("Type")).equalsIgnoreCase((String)a.get("Type"))  ) ==false)
-                    {
+                    if (Utility.exists(auths, k -> ((String) k.get("Type")).equalsIgnoreCase((String) a.get("Type"))) == false) {
                         this.context().send("Wildcard", true);
 
                     }
                 }
                 break;
         }
-        //var acc =
+
     }
 
     @Override
@@ -140,8 +139,7 @@ class SettingsAuthActivity extends WebActivity {
             rd.options().add("用户", "User");
             return rd;
         });
-        switch (RoleType)
-        {
+        switch (RoleType) {
             case "Role":
             case "User":
                 break;
@@ -170,7 +168,8 @@ class SettingsAuthActivity extends WebActivity {
 
             }
         });
-        List<WebMeta> configuration = Utility.auths();
+
+        List<WebMeta> configuration = WebServlet.auths();
 
         if (configuration.size() == 0) {
             this.prompt("现在的功能不需要设置权限");

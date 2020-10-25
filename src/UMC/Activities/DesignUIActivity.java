@@ -11,7 +11,7 @@ import UMC.Data.Utility;
 import java.net.URI;
 import java.util.*;
 
-@Mapping(model = "Design", cmd = "UI", auth = WebAuthType.user, desc = "移动UI设计")
+//@Mapping(model = "Design", cmd = "UI", auth = WebAuthType.user, desc = "移动UI设计")
 public class DesignUIActivity extends WebActivity {
     boolean _isEditer;
 
@@ -139,7 +139,7 @@ public class DesignUIActivity extends WebActivity {
                     section.put("Desc", new UMC.Web.WebMeta().put("desc", "未有设计分类项，请添加").put("icon", "\uEA05"), new UMC.Web.WebMeta().put("desc", "{icon}\n{desc}"),
                             new UIStyle().align(1).color(0xaaa).padding(20, 20).bgColor(0xfff).size(12).name("icon", new UIStyle().font("wdk").size(60)));
                 }
-                UIFooter footer = new UIFooter();
+                UIFootBar footer = new UIFootBar();
                 footer.fixed(true);
 
                 switch (headers.length) {
@@ -166,7 +166,7 @@ public class DesignUIActivity extends WebActivity {
                 }
 
 
-                section.uiFooter(footer);
+                section.uiFootBar(footer);
                 response.redirect(section);
                 return this.dialogValue("none");
             });
@@ -204,8 +204,8 @@ public class DesignUIActivity extends WebActivity {
                         });
                         if (tabs.size() == 1) {
                             UISectionBuilder builder = new UISectionBuilder("UI", "Home", new WebMeta().put("Id", tabs.get(0).meta("search").get("Id")));
-//                            builder.builder()
-                            this.context().send(builder.builder(), true);//"Tab", new WebMeta().put("sections", tabs).put("text", "UMC界面设计"), true);
+
+                            this.context().send(builder.builder(), true);
 
 
                         } else {

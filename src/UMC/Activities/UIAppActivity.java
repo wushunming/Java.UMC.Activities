@@ -1,6 +1,7 @@
 package UMC.Activities;
 
 import UMC.Data.JSON;
+import UMC.Data.Provider;
 import UMC.Data.Utility;
 import UMC.Web.*;
 import com.sun.jndi.toolkit.url.Uri;
@@ -20,6 +21,19 @@ public class UIAppActivity extends WebActivity {
 
 
         String config = this.asyncDialog("Key", g -> this.dialogValue("none"));
+        switch (config) {
+            case "Version":
+            case "Builder":
+            case "json":
+            case "Android":
+            case "IOS":
+                break;
+            default:
+                if (webRequest.isMaster() == false) {
+                    this.prompt("只有管理员才能设置App");
+                }
+                break;
+        }
         String file = Utility.mapPath("~/App_Data/app.json");
         if (new File(file).exists() == false) {
             String strAPP = Utility.httpString("http://oss.365lu.cn/UserResources/demo.json");
@@ -30,6 +44,42 @@ public class UIAppActivity extends WebActivity {
         Map appConfig = (Map) JSON.deserialize(Utility.reader(file));
 
         switch (config) {
+            case "Version": {
+
+                int vindex = webRequest.userAgent().indexOf("android");
+                if (vindex > 0) {
+                    String v = webRequest.userAgent().substring(webRequest.userAgent().indexOf("V", vindex) + 1);
+                    UMC.Data.ProviderConfiguration cfgs = UMC.Data.ProviderConfiguration.configuration("Version");
+                    if (cfgs == null) {
+                        this.prompt("提示", "当前已经是最新版本");
+                    }
+
+                    Provider provider = cfgs.get(config);
+                    if (provider != null) {
+                        if (Utility.parse(provider.get("versionCode"), 0) > Utility.parse(v, 0)) {
+                            this.asyncDialog("Confirm", g ->
+                            {
+                                return new UMC.Web.UIConfirmDialog("您有新版本，点击确认安装").title("新版本安装");
+                            });
+                            WebMeta meta = new UMC.Web.WebMeta();
+                            meta.put("name", provider.name());
+                            meta.put("text", provider.get("text"));
+                            meta.put("title", provider.get("title"));
+                            meta.put("src", provider.get("src")).put("type", "Download");
+                            this.context().send(meta, true);
+
+                        } else {
+                            this.prompt("提示", "当前已经是最新版本");
+                        }
+                    } else {
+                        this.prompt("提示", "当前已经是最新版本");
+
+                    }
+                } else {
+                    this.prompt("苹果版本自动更新");
+                }
+            }
+            break;
             case "Builder":
                 if (Utility.isEmpty((String) appConfig.get("AppName"))) {
                     this.prompt("应用名称不能为空");
@@ -46,12 +96,13 @@ public class UIAppActivity extends WebActivity {
                 dataKey.put("root", webRequest.uri().getPath().split("/")[1]);
 
                 String urlString = webRequest.uri().toString();
-                dataKey.put("host", urlString.substring(0, urlString.indexOf('/', 8) - 1));
+                dataKey.put("host", urlString.substring(0, urlString.indexOf('/', 8)));
 
                 appConfig.put("DataKey", dataKey);
-                webResponse.redirect(JSON.serialize(appConfig));
+                webResponse.redirect(appConfig);
                 break;
             case "json":
+                appConfig.put("IsMaster", webRequest.isMaster());
                 webResponse.redirect(appConfig);
                 break;
             case "Reset":
@@ -69,12 +120,36 @@ public class UIAppActivity extends WebActivity {
                 String strAPP = Utility.httpString(String.format("http://oss.365lu.cn/UserResources/%s.json", ResetName));
 
                 Map appConfig2 = (Map) JSON.deserialize(strAPP);
-                appConfig2.put("BgSrc", appConfig.get("BgSrc"));
-                appConfig2.put("IconSrc", appConfig.get("IconSrc"));
-                appConfig2.put("AppName", appConfig.get("AppName"));
+                if (appConfig.get("BgSrc") != null)
+                    appConfig2.put("BgSrc", appConfig.get("BgSrc"));
+                if (appConfig.get("IconSrc") != null)
+                    appConfig2.put("IconSrc", appConfig.get("IconSrc"));
+                if (appConfig.get("AppName") != null)
+                    appConfig2.put("AppName", appConfig.get("AppName"));
+                if (appConfig.get("Android") != null)
+                    appConfig2.put("Android", appConfig.get("Android"));
+
+                if (appConfig.get("IOS") != null)
+                    appConfig2.put("IOS", appConfig.get("IOS"));
                 appConfig = appConfig2;
 
                 break;
+            case "Android":
+            case "IOS": {
+
+                final String defV = (String) appConfig.get(config);
+                String AppName = this.asyncDialog("Value", g ->
+                {
+                    UITextDialog k = new UITextDialog();
+                    k.title(config + "下载地址").value(defV);//appConfig.get(config));
+
+
+                    return k;
+                });
+                appConfig.put(config, AppName);
+//                appConfig[config] = AppName;
+            }
+            break;
             case "News": {
 
                 WebMeta key = this.asyncDialog(g ->

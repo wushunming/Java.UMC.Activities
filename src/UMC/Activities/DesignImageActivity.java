@@ -1,81 +1,76 @@
 package UMC.Activities;
 
-import UMC.Data.Sql.IObjectEntity;
-import UMC.Data.Utility;
-import UMC.Security.Identity;
 import UMC.Web.*;
 
+import java.net.MalformedURLException;
 import java.net.URI;
-import java.util.Date;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.UUID;
 
-public class DesignImageActivity extends WebActivity {
-
-
+//@Mapping(model = "Design", cmd = "Image")
+public class DesignImageActivity extends DesignClickActivity {
+    @Override
     public void processActivity(WebRequest request, WebResponse response) {
-        Identity user = UMC.Security.Identity.current();
-        UUID groupId = UMC.Data.Utility.uuid(this.asyncDialog("id", d ->
-        {
-            this.prompt("请传入参数");
-            return this.dialogValue(user.id().toString());
-        }), true);
 
-        String Seq = this.asyncDialog("seq", g ->
-        {
-            if (request.sendValues() != null) {
 
-                return this.dialogValue(Utility.isNull(request.sendValues().get("Seq"), "0"));
-            } else {
-                return this.dialogValue("0");
-            }
+        String UI = this.asyncDialog("UI", "none");
+        String section = this.asyncDialog("section", "-1");
+        String row = this.asyncDialog("row", "-1");
+
+        String Type = this.asyncDialog("Type", g ->
+        {
+            UISheetDialog shett = new UISheetDialog();
+            shett.title("图片操作");
+            shett.options().add(new UIClick(new UMC.Web.WebMeta(request.arguments()).put("Type", "Click")).text("点击连接").send(request.model(), request.cmd()));
+
+            shett.options().add(new UIClick(new UMC.Web.WebMeta(request.arguments()).put("Type", "Reset")).text("更换图片").send(request.model(), request.cmd()));
+            shett.options().add(new UIClick(new UMC.Web.WebMeta(request.arguments()).put("Type", "Del")).text("移除图片").send(request.model(), request.cmd()));
+            return shett;
         });
-        UMC.Data.WebResource webr = UMC.Data.WebResource.Instance();
-        String media_id = this.asyncDialog("media_id", g ->
-        {
-            if (request.isApp()) {
-                UIDialog f = UIDialog.createDialog("File");
-                f.config("Submit", new UIClick(new WebMeta(request.arguments().map()).put(g, "Value"))
-                        .send(request.model(), request.cmd()));
-                ;
-                return f;
+        switch (Type) {
+            case "Reset":
 
-            } else {
+                String media_id = this.asyncDialog("media_id", m ->
+                {
+                    UIDialog f = UIDialog.createDialog("File");
+                    f.config("Submit", new UIClick(new UMC.Web.WebMeta(request.arguments()).put("media_id", "Value")).send(request.model(), request.cmd()));
+                    return f;
+                });
 
-                UIFormDialog from = new UIFormDialog();
-                from.title("图片上传");
-
-                from.addFile("选择图片", "media_id", webr.ImageResolve(groupId, Seq, 4));
-
-                from.submit("确认上传", request, "image");
-                return from;
-            }
-        });
+                URL url = null;
+                try {
+                    url = new URL(media_id);
+                } catch (MalformedURLException e) {
+                    e.printStackTrace();
+                }
+                String urlKey = String.format("UserResources/%s/%s", UMC.Data.Utility.uuid(UUID.randomUUID()), url.getPath().substring(url.getPath().lastIndexOf('/')));
+                UMC.Data.WebResource webr = UMC.Data.WebResource.Instance();
 
 
-        String type = this.asyncDialog("type", g -> this.dialogValue("jpg"));
-        int seq = UMC.Data.Utility.parse(Seq, 1);
-        if (media_id.startsWith("http://") || media_id.startsWith("https://")) {
-            URI url = URI.create(media_id);
+                String domain = webr.WebDomain();
 
-            if (url.getPath().toLowerCase().endsWith(type.toLowerCase())) {
-                webr.Transfer(url, groupId, seq, type);
-            } else {
-
-                webr.Transfer(URI.create(String.format("%s?x-oss-process=image/format,%s", media_id, type)), groupId, seq, type);
-            }
-
-
-        } else {
-            /*
-             * 微信上传
-             * */
+                webr.Transfer(url, urlKey);
+                UMC.Web.WebMeta posmata = new UMC.Web.WebMeta();
+                posmata.put("src", domain + urlKey);
+                UMC.Web.WebMeta vale = new UMC.Web.WebMeta().put("section", section).put("row", row).put("method", "VALUE").put("reloadSinle", true).put("value", posmata);
+                this.context().send(new UMC.Web.WebMeta().event("UI.Edit", UI, vale), true);
+                break;
+            case "Del":
+                UMC.Web.WebMeta dvale = new UMC.Web.WebMeta().put("section", section).put("row", row).put("method", "DEL").put("reloadSinle", true).put("value", new UMC.Web.WebMeta());
+                this.context().send(new UMC.Web.WebMeta().event("UI.Edit", UI, dvale), true);
+                break;
+            case "Click":
+                UIClick click = this.Click(new UIClick());
+                UMC.Web.WebMeta posmata2 = new UMC.Web.WebMeta();
+                posmata2.put("click", click);
+                this.prompt("图片点击设置成功", false);
+                this.context().send("Click", false);
+                this.context().send(new UMC.Web.WebMeta().event("UI.Edit", UI, new UMC.Web.WebMeta().put("section", section).put("row", row).put("method", "VALUE")
+                        .put("value", posmata2)), true);
+                break;
         }
 
 
-        this.context().send(new WebMeta().put("type", "image").put("id", groupId), true);
-
-
     }
-
 }
-

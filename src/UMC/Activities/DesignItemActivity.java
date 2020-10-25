@@ -91,7 +91,7 @@ class DesignItemActivity extends WebActivity {
             from.title("图标");
 
             from.addFile("图片", "_Image", webr.ImageResolve(finalItem.Id, "1", 4))
-                    .command("Design", "Image", new UMC.Web.WebMeta().put("id", finalItem.Id).put("seq", "1"));
+                    .command("Design", "Picture", new UMC.Web.WebMeta().put("id", finalItem.Id).put("seq", "1"));
             from.addText("标题", "ItemName", finalItem.ItemName);
 
             from.addNumber("顺序", "Seq", finalItem.Seq);
@@ -155,7 +155,7 @@ class DesignItemActivity extends WebActivity {
             UIFormDialog from = new UIFormDialog();
             from.title("图标");
             from.addFile("图片", "_Image", webr.ImageResolve(finalItem.Id, "1", 4))
-                    .command("Design", "Image", new UMC.Web.WebMeta().put("id", finalItem.Id).put("seq", "1"));
+                    .command("Design", "Picture", new UMC.Web.WebMeta().put("id", finalItem.Id).put("seq", "1"));
             from.addText("标题", "title", finalItem.ItemName);
             from.addText("描述", "desc", finalItem.ItemDesc);
             from.add("Color", "startColor", "标题开始色", data.get("startColor"));
@@ -234,7 +234,7 @@ class DesignItemActivity extends WebActivity {
 
             from.addFile(String.format("%s比例图片", total == "1" ? "100:55" : "1:1"), "_Image",
                     webr.ImageResolve(finalItem.Id, "1", 4))
-                    .command("Design", "Image", new UMC.Web.WebMeta().put("id", finalItem.Id).put("seq", "1"));
+                    .command("Design", "Picture", new UMC.Web.WebMeta().put("id", finalItem.Id).put("seq", "1"));
             String hide = Utility.isNull(config.get("Hide"), "");
             if (hide.indexOf("HideTitle") == -1)
                 from.addText("图文标题", "title", finalItem.ItemName);
@@ -404,7 +404,7 @@ class DesignItemActivity extends WebActivity {
             }
             from.addFile(size, "_Image",
                     webr.ImageResolve(finalItem.Id, "1", 4))
-                    .command("Design", "Image", new UMC.Web.WebMeta().put("id", finalItem.Id).put("seq", "1"));
+                    .command("Design", "Picture", new UMC.Web.WebMeta().put("id", finalItem.Id).put("seq", "1"));
 
 
             from.addNumber("展示顺序", "Seq", finalItem.Seq);

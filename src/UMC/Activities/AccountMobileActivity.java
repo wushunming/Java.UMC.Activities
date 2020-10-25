@@ -6,6 +6,7 @@ import UMC.Data.Database;
 import UMC.Data.Entities.Account;
 import UMC.Data.Sql.IObjectEntity;
 import UMC.Data.Utility;
+import UMC.Net.Message;
 import UMC.Security.Identity;
 import UMC.Security.Membership;
 import UMC.Web.*;
@@ -49,6 +50,7 @@ class AccountMobileActivity extends WebActivity {
         session.commit(hask, user);
 
 
+        Message.instance().send("Verify", hask, mobile);
     }
 
 
@@ -131,7 +133,7 @@ class AccountMobileActivity extends WebActivity {
         if (Utility.IsPhone(value) == false) {
             this.prompt("手机号码格式不正确");
         }
-        accountEntity.where().reset().and().equal("Name", value).and().equal("Type", Membership.MOBILE_ACCOUNT_KEY)
+        accountEntity.where().reset().and().equal(new Account().Name(value).Type(Membership.MOBILE_ACCOUNT_KEY))
                 .and().unEqual(new Account().User_id(user.id()));
 
 
